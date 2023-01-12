@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ToastContainer } from 'react-toastify';
 import { toast } from 'react-toastify';
-
+import PropTypes from 'prop-types';
 import 'react-toastify/dist/ReactToastify.css';
 
 import Searchbar from './Searchbar/Searchbar';
@@ -93,4 +93,8 @@ export const App = () => {
       <ToastContainer autoClose={2000} />
     </AppStyle>
   );
+};
+
+App.propTypes = {
+  searchName: PropTypes.string,
 };
