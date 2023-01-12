@@ -25,8 +25,6 @@ export const App = () => {
   const [renderModal, setRenderModal] = useState(false);
   const [status, setStatus] = useState('idle');
   const [largeImg, setLargeImg] = useState('');
-  // console.log(pictures);
-  // console.log(pageNumber);
 
   useEffect(() => {
     if (searchName !== '') {
