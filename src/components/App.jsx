@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ToastContainer } from 'react-toastify';
 import { toast } from 'react-toastify';
 
@@ -16,103 +16,83 @@ import Loader from './Loader/Loader';
 // pending - очікується
 // resolved - успішно виконане
 // rejected - відхилено(помилка)]
-export class App extends Component {
-  state = {
-    searchName: '',
-    pictures: [],
-    pageNumber: 1,
-    renderModal: false,
-    status: 'idle',
-    largeImg: '',
-  };
-  componentDidUpdate(_, prevState) {
-    const { searchName, pageNumber, pictures } = this.state;
 
-    if (
-      searchName !== prevState.searchName ||
-      pageNumber !== prevState.pageNumber
-    ) {
-      this.setState({ status: 'pending' });
-      //
-      //
-      // setTimeout(() => {
+export const App = () => {
+  const initFetch = useRef(true);
+  const [searchName, setSearchName] = useState('');
+  const [pictures, setPictures] = useState([]);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [renderModal, setRenderModal] = useState(false);
+  const [status, setStatus] = useState('idle');
+  const [largeImg, setLargeImg] = useState('');
+  // console.log(pictures);
+  // console.log(pageNumber);
 
+  useEffect(() => {
+    if (searchName !== '') {
+      setStatus('pending');
       try {
         fetchData(searchName, pageNumber).then(data => {
           data.map(({ id, webformatURL, largeImageURL }) => {
-            return this.setState(prevState => {
-              return {
-                pictures: [
-                  ...prevState.pictures,
-                  { id, webformatURL, largeImageURL },
-                ],
-                status: 'resolved',
-              };
-            });
+            return setPictures(prevState => [
+              ...prevState,
+              { id, webformatURL, largeImageURL },
+            ]);
           });
-          if (data.length === 0) {
-            console.log(pictures);
+          setStatus('resolved');
 
+          if (data.length === 0) {
             return toast.error(`There are no images with name: ${searchName}`);
           } else if (data.length < 12) {
             toast.warn('There are no more images to load!');
-            this.setState({ status: 'idle' });
+            setStatus('idle');
           }
         });
       } catch (error) {
-        this.setState({ status: 'rejected' });
+        setStatus('rejected');
 
         console.error(error);
       }
-
-      // }, 5000);
-      //
-      //
     }
-  }
+    initFetch.current = false;
+  }, [pageNumber, searchName]);
 
-  onSubmit = searchName => {
-    this.setState({ searchName, pageNumber: 1, pictures: [] });
+  const onSubmit = searchName => {
+    setSearchName(searchName);
+    setPageNumber(1);
+    setPictures([]);
   };
 
-  toggleModal = () => {
-    this.setState(({ renderModal }) => ({ renderModal: !renderModal }));
+  const toggleModal = () => {
+    setRenderModal(prev => !prev);
+    console.log(renderModal);
   };
 
-  setActivePic = largeImg => {
-    this.setState({ largeImg: largeImg });
+  const setActivePic = largeImg => {
+    setLargeImg(largeImg);
     // console.log(largeImg);
   };
 
-  loadMorePic = () => {
-    this.setState(prevState => {
-      return { pageNumber: prevState.pageNumber + 1 };
-    });
+  const loadMorePic = () => {
+    setPageNumber(prev => prev + 1);
     // console.log(this.state.pageNumber);
   };
 
-  render() {
-    const { renderModal, status, pictures, largeImg } = this.state;
-    const { toggleModal, setActivePic, onSubmit, loadMorePic } = this;
-    // if (status === 'idle')
-    return (
-      <AppStyle>
-        <Searchbar onSubmitBtn={onSubmit} />
+  return (
+    <AppStyle>
+      <Searchbar onSubmitBtn={onSubmit} />
 
-        <ImageGallery
-          picData={pictures}
-          toggleModal={toggleModal}
-          setActivePic={setActivePic}
-        />
+      <ImageGallery
+        picData={pictures}
+        toggleModal={toggleModal}
+        setActivePic={setActivePic}
+      />
 
-        {status === 'pending' && <Loader />}
-        {renderModal && <Modal toggleModal={toggleModal} largePic={largeImg} />}
-        {status === 'resolved' && <LoadMoreBtn onLoadMore={loadMorePic} />}
-        {status === 'rejected' && (
-          <span>Something Wrong. Please try again!</span>
-        )}
-        <ToastContainer autoClose={2000} />
-      </AppStyle>
-    );
-  }
-}
+      {status === 'pending' && <Loader />}
+      {renderModal && <Modal toggleModal={toggleModal} largePic={largeImg} />}
+      {status === 'resolved' && <LoadMoreBtn onLoadMore={loadMorePic} />}
+      {status === 'rejected' && <span>Something Wrong. Please try again!</span>}
+      <ToastContainer autoClose={2000} />
+    </AppStyle>
+  );
+};

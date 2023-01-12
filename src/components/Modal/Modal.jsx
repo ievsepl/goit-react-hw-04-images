@@ -1,48 +1,44 @@
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import { Overlay, ModalStyle } from './Modal.styled';
 import PropTypes from 'prop-types';
 
 // const modalRoot = document.querySelector('.modal-root');
 
-class Modal extends Component {
-  static propTypes = {
-    largePic: PropTypes.string.isRequired,
-    toggleModal: PropTypes.func.isRequired,
-  };
-  componentDidMount() {
-    window.addEventListener('keydown', this.onCloseEsc);
-  }
+const Modal = ({ toggleModal, largePic }) => {
+  useEffect(() => {
+    const onCloseEsc = evt => {
+      if (evt.code === 'Escape') {
+        console.log('Esc');
+        toggleModal();
+      }
+    };
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.onCloseEsc);
-  }
+    window.addEventListener('keydown', onCloseEsc);
 
-  onCloseEsc = evt => {
-    if (evt.code === 'Escape') {
-      console.log('Esc');
-      this.props.toggleModal();
-    }
-  };
+    return () => {
+      window.removeEventListener('keydown', onCloseEsc);
+    };
+  }, [toggleModal]);
 
-  backdropClose = evt => {
-    // console.log(evt);
-    // console.dir(evt.target.nodeName);
-    // console.log(evt.currentTarget);
+  const backdropClose = evt => {
     if (evt.target === evt.currentTarget) {
-      this.props.toggleModal();
+      toggleModal();
     }
   };
 
-  render() {
-    return (
-      <Overlay className="overlay" onClick={this.backdropClose}>
-        <ModalStyle className="modal">
-          <img src={this.props.largePic} alt="" />
-        </ModalStyle>
-      </Overlay>
-      // ,
-      // modalRoot
-    );
-  }
-}
+  return (
+    <Overlay className="overlay" onClick={backdropClose}>
+      <ModalStyle className="modal">
+        <img src={largePic} alt="" />
+      </ModalStyle>
+    </Overlay>
+    // ,
+    // modalRoot
+  );
+};
 export default Modal;
+
+Modal.propTypes = {
+  largePic: PropTypes.string.isRequired,
+  toggleModal: PropTypes.func.isRequired,
+};
